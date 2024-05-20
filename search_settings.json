@@ -1,0 +1,36 @@
+{
+  "categories": [
+    "Restaurants",
+    "Plumbers",
+    "Electricians",
+    "Hairdressers",
+    "Solicitors",
+    "Dentists",
+    "Mechanics",
+    "Accountants",
+    "Builders",
+    "Cleaning Services",
+    "Gardening Services",
+    "Pet Services",
+    "Real Estate Agents",
+    "Fitness Trainers",
+    "Beauty Salons"
+  ],
+  "locations": [
+    "London",
+    "Manchester",
+    "Birmingham",
+    "Leeds",
+    "Glasgow",
+    "Liverpool",
+    "Edinburgh",
+    "Bristol",
+    "Sheffield",
+    "Newcastle",
+    "Cardiff",
+    "Belfast",
+    "Nottingham",
+    "Leicester",
+    "Brighton"
+  ]
+}
