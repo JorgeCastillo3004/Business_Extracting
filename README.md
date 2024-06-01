@@ -56,4 +56,12 @@ source selenium_env/bin/activate
 pip install -r requirements.txt
 ```
 
+### 5. Start https://www.yell.com/ extraction
+```bash
+python main1.py
+```
 
+### 6. Start https://www.yelp.co.uk/ extraction
+```bash
+python main2.py
+```
