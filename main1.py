@@ -4,7 +4,6 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-
 from selenium.webdriver.common.action_chains import ActionChains
 
 from datetime import date, timedelta, datetime
@@ -101,6 +100,7 @@ def make_search(driver, search_word, search_localization):
     category_element = driver.find_element(By.ID, 'search_keyword')
     random_sleep(start=0, end=0.5)
     category_element.clear()
+    print(f"search_word: {search_word}")
     human_typing(category_element, search_word+'\n', start=0.05, end=0.15)
     random_sleep()
 
@@ -109,11 +109,10 @@ def make_search(driver, search_word, search_localization):
     localization_element = driver.find_element(By.ID, 'search_location')
     random_sleep(start=0, end=0.5)
     localization_element.clear()
+    print(f"search_localization: {search_localization}")
     human_typing(localization_element, search_localization +'\n', start=0.05, end=0.15)
     random_sleep()
-
-    # button_search = driver.find_element(By.XPATH, '//button[@title="Search now"]')
-    # button_search.click()
+    webdriver.ActionChains(driver).send_keys(Keys.ENTER).perform()
 
 def extrac_phones(block):
     phone_options = block.find_elements(By.CLASS_NAME, 'phoneOption')
@@ -149,16 +148,18 @@ def create_row(search_rank, company_name,profile_URL, full_address,
     }
     return row
 
-def get_website(driver):
+def get_website(block):
     try:
         xpath_expression = "//a[contains(text(), 'Website')]"
-        return driver.find_element(By.XPATH, xpath_expression).get_attribute('href')
+        return block.find_element(By.XPATH, xpath_expression).get_attribute('href')
     except:
         return ''
 
 def get_company_name_profile_URL(block, start_1 = 1, start_2 = 2, end_1 = 3, end_2 = 3):
-    random_sleep(start=start_1, end=end_1)
-    company_url = block.find_element(By.CLASS_NAME, 'businessCapsule--title')
+    random_sleep(start=start_1, end=end_1)    
+    wait = WebDriverWait(block, 10)
+    # company_url = block.find_element(By.CLASS_NAME, 'businessCapsule--title')
+    company_url = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'businessCapsule--title')))    
     company_name =  company_url.text
     profile_URL =  company_url.get_attribute('href')
     random_sleep(start=start_2, end=end_2)
@@ -209,6 +210,56 @@ def click_next(driver, search_counter, index):
         blocks = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'row.businessCapsule--mainRow')))
         search_counter += index
     return search_counter
+
+def click_social_media_links(block, driver):
+    
+    # driver.execute_script("window.open('');")
+    
+    # Open the specified URL
+
+    # try:       
+    print("Update new")
+    xpath_expression = "//a[contains(text(), 'Website')]"
+    block.find_element(By.XPATH, xpath_expression).click()
+    driver.switch_to.window(driver.window_handles[1])
+    random_sleep(start=1, end=2)
+    webdriver.ActionChains(driver).send_keys(Keys.END).perform()
+    print("First sleep")
+    random_sleep(start=1, end=3)
+    # Wait for the page to load completely
+    wait = WebDriverWait(driver, 10)
+
+    # Define the social media keywords to search for
+    social_media_keywords = {
+        'Twitter': "contains(@href, 'twitter.com') or contains(@href, 'x.com')",
+        'Linkedin': "contains(@href, 'linkedin.com')",
+        'Facebook': "contains(@href, 'facebook.com')",
+        'Instagram': "contains(@href, 'instagram.com')"
+    }
+    # Create a dictionary to store the found links
+    social_media_links = {}
+
+    # Iterate through each keyword and search for corresponding links
+    for platform, keyword in social_media_keywords.items():
+
+        # Use XPath to find elements containing the keyword in their href attribute
+        xpath_expression = f"//a[{keyword}]"
+        link_element = driver.find_elements(By.XPATH, xpath_expression)
+        if link_element:
+            link_element = wait.until(EC.presence_of_element_located((By.XPATH, xpath_expression)))
+            social_media_links[platform] = link_element.get_attribute('href')
+            print(f"platform found: {platform}")
+        else:
+            social_media_links[platform] = ''
+    social_media_links['Email']= get_business_email(driver)
+    print("Other sleep")
+    random_sleep(start=2, end=3)
+    close_back_main_window(driver)
+    return social_media_links
+    # except:
+    #     random_sleep(start=0.2, end=1.5)
+    #     close_back_main_window(driver)
+    #     return {}
 
 def extract(driver, city, outfile):
     folder = outfile.split('/')[0]
@@ -276,7 +327,7 @@ def extract(driver, city, outfile):
                 social_links = {}
                 
                 if profile_URL != '':
-                    social_links = extract_social_media_links(driver, profile_URL)
+                    social_links = click_social_media_links(block, driver)
 
                 row.update(social_links)
                 data.append(row)
@@ -312,6 +363,7 @@ def main():
         for city in search_settings['locations']:
             print(category, city)            
             make_search(driver, category, city)
+            random_sleep(start=start_4, end=end_5)
             ensure_directory_exists(directory_path)
             extract(driver, city, f'{directory_path}/{category}_{category}_out.csv')
 
