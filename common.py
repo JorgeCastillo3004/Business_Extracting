@@ -158,7 +158,7 @@ def get_business_email(driver):
     
     try:
         # Search for email in a specific div or p tag
-        email_divs = driver.find_elements(By.XPATH, "//div[contains(text(), '@')] | //p[contains(text(), '@')]")
+        email_divs = driver.find_elements(By.XPATH, "//div[contains(text(), '@')] | //p[contains(text(), '@')]| //a[contains(text(), '@')]")
         for div in email_divs:
             emails_found = re.findall(email_regex, div.text)
             if emails_found:
