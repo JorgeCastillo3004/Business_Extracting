@@ -1,4 +1,4 @@
-# Business EXtracting using Selenium with Firefox on CentOS
+# Business Extracting using Selenium with Firefox on CentOS
 
 This guide provides step-by-step instructions for setting up Selenium with Firefox on a CentOS system. This includes creating a virtual environment, installing necessary dependencies, and setting up Firefox and its driver.
 
