@@ -55,13 +55,17 @@ source selenium_env/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
+### 5. Edit the "Search_settings.json" file
+Define the search categories and locations.
 
-### 5. Start https://www.yell.com/ extraction
+### 6. Start https://www.yell.com/ extraction
 ```bash
 python main1.py
 ```
 
-### 6. Start https://www.yelp.co.uk/ extraction
+### 7. Start https://www.yelp.co.uk/ extraction
 ```bash
 python main2.py
 ```
+### 8. The output files.
+The outputs files can be found in the folders "files_yell" and "files_yelp" created in the current directory, the script generate a file by category search and location. 
