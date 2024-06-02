@@ -1,5 +1,4 @@
-# business_extraction
-# Selenium with Firefox on CentOS
+# Business_EXtracting using Selenium with Firefox on CentOS
 
 This guide provides step-by-step instructions for setting up Selenium with Firefox on a CentOS system. This includes creating a virtual environment, installing necessary dependencies, and setting up Firefox and its driver.
 
@@ -67,5 +66,5 @@ python main1.py
 ```bash
 python main2.py
 ```
-### 8. The output files.
-The outputs files can be found in the folders "files_yell" and "files_yelp" created in the current directory, the script generate a file by category search and location. 
+### 8. The Output Files
+The output files can be found in the "files_yell" and "files_yelp" folders created in the current directory. The script generates a file for each search category and location.
