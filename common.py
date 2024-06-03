@@ -1,5 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -37,26 +39,27 @@ def load_check_point(filename):
     else:
         return 0
 
-def open_firefox_with_profile(url, profile_directory='', headless= False):
+def open_firefox_with_profile(url, headless= True, profile_directory=''):
+    geckodriver_path = "/usr/local/bin/geckodriver" 
+
     # Configurar las opciones del navegador
-    options = webdriver.FirefoxOptions()
-    
-    # Agregar argumentos para evitar la detección como bot
+    options = Options()
     options.add_argument('--disable-blink-features=AutomationControlled')
     options.add_argument('--disable-infobars')
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--disable-browser-side-navigation')
     options.add_argument('--disable-gpu')
     options.add_argument('--no-sandbox')
-    if headless:        
+    if headless:
+        print('Mode headless')
         options.add_argument('--headless')
-    # Crear un perfil de usuario personalizado
-#     firefox_profile = webdriver.FirefoxProfile(profile_directory)
 
-    # Crear una instancia del navegador Firefox con las opciones y el perfil configurados
-#     firefox_profile=firefox_profile,
-    driver = webdriver.Firefox(options=options)
+    service = Service(geckodriver_path)
+
+    driver = webdriver.Firefox(service=service, options=options)
+    
     driver.get(url)
+    
     return driver
 
 def continue_stop():

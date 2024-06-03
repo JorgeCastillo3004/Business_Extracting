@@ -8,10 +8,8 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 from datetime import date, timedelta, datetime
 from selenium import webdriver
-import chromedriver_autoinstaller
 import random
 import string
-import requests
 import json
 import os
 import re
@@ -359,8 +357,8 @@ def extract(driver, city, outfile):
 
 
 def main():
-    directory_path = 'files_yell'
-    driver = open_firefox_with_profile('https://www.yell.com/', headless= False)	
+    directory_path = 'files_yell'    
+    driver = open_firefox_with_profile('https://www.yell.com/', headless= False)
     continue_stop()
     search_settings = load_json('search_settings.json')
     count = 0
