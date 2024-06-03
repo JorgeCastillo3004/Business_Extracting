@@ -361,7 +361,7 @@ def extract(driver, city, outfile):
     df.to_csv(outfile)
     
 def main():
-    # driver = launch_navigator('https://www.yelp.co.uk/', headless=False)    
+    # driver = launch_navigator('https://www.yelp.co.uk/')
     directory_path = 'files_yelp'    
     driver = open_firefox_with_profile('https://www.yelp.co.uk/', headless= False)    
     continue_stop()

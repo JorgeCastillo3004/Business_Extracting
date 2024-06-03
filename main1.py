@@ -358,7 +358,7 @@ def extract(driver, city, outfile):
 
 def main():
     directory_path = 'files_yell'    
-    driver = open_firefox_with_profile('https://www.yell.com/', headless= False)
+    driver = open_firefox_with_profile('https://www.yell.com/')
     continue_stop()
     search_settings = load_json('search_settings.json')
     count = 0

@@ -39,7 +39,7 @@ def load_check_point(filename):
     else:
         return 0
 
-def open_firefox_with_profile(url, headless= True, profile_directory=''):
+def open_firefox_with_profile(url, headless= True):
     geckodriver_path = "/usr/local/bin/geckodriver" 
 
     # Configurar las opciones del navegador
