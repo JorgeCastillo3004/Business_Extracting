@@ -363,7 +363,7 @@ def main():
     # driver = launch_navigator('https://www.yelp.co.uk/')
     directory_path = 'files_yelp'    
     driver = open_firefox_with_profile('https://www.yelp.co.uk/', headless= False)    
-    continue_stop()
+
     search_settings = load_json('search_settings.json')
     count = 0
     for category in search_settings['categories']:
