@@ -353,6 +353,7 @@ def extract(driver, city, outfile):
             break
         
     df = pd.DataFrame(data)
+    df = df.drop_duplicates()
     df.to_csv(outfile)
     df
 
