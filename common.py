@@ -55,8 +55,7 @@ def open_firefox_with_profile(url, headless= True, profile_directory=''):
         options.add_argument('--headless')
 
     service = Service(geckodriver_path)
-
-    driver = webdriver.Firefox(service=service, options=options)
+    driver = webdriver.Firefox(options=options)
     
     driver.get(url)
     
