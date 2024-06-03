@@ -366,7 +366,7 @@ def main():
         for city in search_settings['locations']:
             print(category, city)            
             make_search(driver, category, city)
-            random_sleep(start=start_4, end=end_5)
+            random_sleep(start = 4, end= 5)
             ensure_directory_exists(directory_path)
             extract(driver, city, f'{directory_path}/{category}_{category}_out.csv')
 

@@ -8,7 +8,6 @@ from selenium.webdriver.common.by import By
 
 from datetime import date, timedelta, datetime
 from selenium import webdriver
-import chromedriver_autoinstaller
 import random
 import string
 import os
@@ -371,6 +370,7 @@ def main():
         for city in search_settings['locations']:
             print(category, city)            
             make_search(driver, category, city)
+            random_sleep(start = 1, end= 3)
             ensure_directory_exists(directory_path)
             extract(driver, city, f'{directory_path}/{category}_{category}_out.csv')
 
