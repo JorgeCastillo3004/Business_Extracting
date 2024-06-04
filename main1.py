@@ -288,7 +288,7 @@ def extract(driver, check_point, outfile):
         xpath_expression = 'row.businessCapsule--mainRow'
         blocks = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, xpath_expression)))
         random_sleep(start=0.5, end=1)
-        for index, block in enumerate(blocks[:3]):# delete [content]            
+        for index, block in enumerate(blocks):# delete [content]
             # Update search rank value
             search_rank = search_counter + index            
             if search_rank > int(check_point['search_rank']) or check_point['search_rank'] == 1: # enable if search_rank match with checkpoint.
