@@ -3,7 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 
-def create_firefox_driver(url, headless=True):
+def create_firefox_driver(url, headless=False):
     # Ruta al binario de geckodriver
     geckodriver_path = "/usr/local/bin/geckodriver" 
 
@@ -21,7 +21,7 @@ def create_firefox_driver(url, headless=True):
 
     service = Service(geckodriver_path)
 
-    driver = webdriver.Firefox(service=service, options=options)
+    driver = webdriver.Firefox(options=options)
     
     driver.get(url)
     

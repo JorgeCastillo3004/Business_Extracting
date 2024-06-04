@@ -368,7 +368,7 @@ def extract(driver, check_point, outfile):
 
 def main():
     url1 = 'https://www.yell.com/'
-    driver = open_firefox_with_profile(url1, headless= True)
+    driver = open_firefox_with_profile(url1, headless= False)
     directory_path = 'files_yell'    
     check_point = restart_continue(directory_path) # check and load checkpoint.
     search_settings = load_json('search_settings.json')
