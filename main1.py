@@ -123,13 +123,13 @@ def extrac_phones(block):
     return phone_numbers
 
 def create_row(search_rank, company_name,profile_URL, full_address,
-                phone_numbers, website, rating, year_business):
+                phone_numbers, website, rating, year_business, location_category):
 
     row ={
-    'Search Location':'',
+    'Search Location':location_category['location'],
     'Search Rank':search_rank,
     'Profile/Company Name':company_name,
-    'Category':'',
+    'Category':location_category['category'],
     'Profile URL':profile_URL,    
     'Full Address':full_address,
     'Phone Number': phone_numbers,
@@ -162,7 +162,7 @@ def get_company_name_profile_URL(block, start_1 = 1, start_2 = 2, end_1 = 3, end
         company_name =  company_url.text
         profile_URL =  company_url.get_attribute('href')
         random_sleep(start=start_2, end=end_2)        
-        return company_name, profile_URL
+        return clean_string(company_name), profile_URL
     except:
         return '', ''
 
@@ -186,9 +186,10 @@ def get_rating(block):
 def get_year_business(block):
     try:
         year_business = block.find_element(By.CLASS_NAME, 'col-sm-12').text
+        return found_numbers(year_business)
     except:
-        year_business = ''
-    return year_business
+        year_business = None
+        return year_business
 
 def get_phone(block):
     try:
@@ -202,33 +203,44 @@ def get_phone(block):
     except:
         return ''
 
-def click_next(driver, search_counter, index):
+def click_next(driver, search_counter, index, maxtry = 5):
+    webdriver.ActionChains(driver).send_keys(Keys.END).perform()
     wait = WebDriverWait(driver, 10)
-    next_page_button = driver.find_elements(By.XPATH, "//a[contains(text(), 'Next')]")
-    if next_page_button:        
-        blocks = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'row.businessCapsule--mainRow')))
-        next_page_button[0].click()
+    
+    count = 0
+    while count < maxtry:
+        try:
+            webdriver.ActionChains(driver).send_keys(Keys.END).perform()
+            next_page_button = driver.find_elements(By.XPATH, "//a[contains(text(), 'Next')]")
+            if next_page_button:        
+                blocks = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'row.businessCapsule--mainRow')))
+                next_page_button[0].click()
 
-        if len(blocks) != 0: # Check if exists blocks
-            wait.until(EC.staleness_of(blocks[0])) # wait until staleness first block 
-            
-        # else:
-        blocks = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'row.businessCapsule--mainRow')))
-        search_counter += index
-    return search_counter
+                if len(blocks) != 0: # Check if exists blocks
+                    wait.until(EC.staleness_of(blocks[0])) # wait until staleness first block
+
+                # else:
+                blocks = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'row.businessCapsule--mainRow')))
+                search_counter += index + 1
+                print("Click Next sucessfull")
+                return search_counter, True
+            else:
+                return search_counter, False
+        except:
+            count += 1
+            random_sleep()
+    return search_counter, False
 
 def click_social_media_links(block, driver):
     
     # driver.execute_script("window.open('');")    
     # Open the specified URL
-    try:       
-        print("Update new")
+    try:
         xpath_expression = ".//a[contains(text(), 'Website')]"
         block.find_element(By.XPATH, xpath_expression).click()
         driver.switch_to.window(driver.window_handles[1])
         random_sleep(start=1, end=2)
-        webdriver.ActionChains(driver).send_keys(Keys.END).perform()
-        print("First sleep")
+        webdriver.ActionChains(driver).send_keys(Keys.END).perform()        
         random_sleep(start=1, end=3)
         # Wait for the page to load completely
         wait = WebDriverWait(driver, 10)
@@ -252,11 +264,9 @@ def click_social_media_links(block, driver):
             if link_element:
                 link_element = wait.until(EC.presence_of_element_located((By.XPATH, xpath_expression)))
                 social_media_links[platform] = link_element.get_attribute('href')
-                print(f"platform found: {platform}")
             else:
                 social_media_links[platform] = ''
-        social_media_links['Email']= get_business_email(driver)
-        print("Other sleep")
+        social_media_links['Email']= get_business_email(driver)        
         random_sleep(start=2, end=3)
         close_back_main_window(driver)
         return social_media_links
@@ -265,30 +275,31 @@ def click_social_media_links(block, driver):
         close_back_main_window(driver)
         return {}
 
-def extract(driver, city, outfile):
-    folder = outfile.split('/')[0]
-    data = load_json(f'{folder}/data.json')
-    check_point = load_check_point(f'{folder}/checkpoint.json')
+def extract(driver, check_point, outfile):
+    print("Input check point: ", check_point)
+    folder = outfile.split('/')[0]    
     enable = False
-    search_counter = 1
+    search_counter = 1   
+    data = load_json(f'{folder}/data.json')    
+    # check_point = load_check_point(f'{folder}/checkpoint.json')
 
-    print("search_counter: ", search_counter)
-    print(f"check_point {check_point}")
     while True:
         wait = WebDriverWait(driver, 10)
         xpath_expression = 'row.businessCapsule--mainRow'
         blocks = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, xpath_expression)))
         random_sleep(start=0.5, end=1)
-        for index, block in enumerate(blocks):
-            print(f"Index {index}, search_counter: {search_counter}")
-            if check_point == index or check_point >= len(blocks): # enable if index match with checkpoint.
+        for index, block in enumerate(blocks[:3]):# delete [content]            
+            # Update search rank value
+            search_rank = search_counter + index            
+            if search_rank > int(check_point['search_rank']) or check_point['search_rank'] == 1: # enable if search_rank match with checkpoint.
                 enable = True
     #         enable = False
             if enable:
                 #############################################
                 #         EXTRACT COMPANY NAME              #
                 #############################################
-                company_name, profile_URL = get_company_name_profile_URL(block, start_1 = 1, start_2 = 2, end_1 = 3, end_2 = 3)
+                company_name, profile_URL = get_company_name_profile_URL(block, start_1 = 1, start_2 = 2, end_1 = 3, end_2 = 3)                
+                print(f"Search_rank: {search_rank} index {index} comapany name: {company_name}")
                 #############################################
                 #       EXTRACT PROFILE URL  ADDRESS        #
                 #############################################
@@ -298,8 +309,7 @@ def extract(driver, city, outfile):
                 #############################################
                 #         EXTRACT SEARCH RANKING            #
                 #############################################                
-                search_rank = search_counter + index
-                print(f"search_rank: {search_rank}, company_name: {company_name}")
+                search_rank = search_counter + index                
                 random_sleep(start=0.2, end=1.5)
 
                 #############################################
@@ -325,7 +335,7 @@ def extract(driver, city, outfile):
                 #############################################
                 website = get_website(block)
                 row = create_row(search_rank, company_name, profile_URL, full_address,
-                            phone_numbers, website, rating, year_business)
+                            phone_numbers, website, rating, year_business, check_point)
                 
                 random_sleep(start=0.5, end=1.5)
                 social_links = {}
@@ -335,42 +345,54 @@ def extract(driver, city, outfile):
 
                 row.update(social_links)
                 data.append(row)
+                
                 save_check_point(f'{folder}/data.json', data)
 
                 # SAVE CHECK POINT 
-                save_check_point(f'{folder}/checkpoint.json', {'index':index})
-
-                print(row)
+                check_point = {'category':check_point['category'], 'location':check_point['location'],
+                                'search_rank':search_rank}
+                save_check_point(f'{folder}/checkpoint.json', check_point)                
+        # continue_stop()
+        df = pd.DataFrame(data)
+        df.to_csv(f'{folder}/{folder}_out.csv')
         #############################################
         #         CLICK NEXT PAGE                   #
         #############################################
-        try:
-            print("Click on next")
-            search_counter = click_next(driver, search_counter, index)
-            random_sleep(start = 1, end = 1.5)
-            print(f"search_counter {search_counter}")
-        except:
+        search_counter, next_found = click_next(driver, search_counter, index)
+        random_sleep(start = 1, end = 1.5)            
+        print(f"search_counter {search_counter}")
+        print("Click Next ready")
+        if not next_found:
             break
-        
-    df = pd.DataFrame(data)
-    # df = df.drop_duplicates()
-    df.to_csv(outfile)
-    df
-
+    return data
 
 def main():
+    url1 = 'https://www.yell.com/'
+    driver = open_firefox_with_profile(url1, headless= False)
     directory_path = 'files_yell'    
-    driver = open_firefox_with_profile('https://www.yell.com/')
-    
+    check_point = restart_continue(directory_path) # check and load checkpoint.
     search_settings = load_json('search_settings.json')
     count = 0
     for category in search_settings['categories']:
-        for city in search_settings['locations']:
-            print(category, city)            
-            make_search(driver, category, city)
-            random_sleep(start = 4, end= 5)
-            ensure_directory_exists(directory_path)
-            extract(driver, city, f'{directory_path}/{category}_{category}_out.csv')
+        for location in search_settings['locations']:
+
+            cond1 = check_point['category'] == category
+            cond2 = check_point['location'] == location
+            cond3 = check_point['category'] == ''
+            
+            if cond1 and  cond2 or cond3:
+                print(category, location)
+                check_point['category'] = category
+                check_point['location'] = location
+                make_search(driver, category, location)
+                random_sleep(start = 4, end= 5)
+                ensure_directory_exists(directory_path)
+                # extract(driver, location, f'{directory_path}/{category}_{category}_out.csv')
+                data = extract(driver, check_point, f'{directory_path}/{category}_{category}_out.csv')
+                check_point['category'] == ''
+        if data:
+            df = pd.DataFrame(data)
+            df.to_csv(f'{directory_path}/{directory_path}_out.csv')
 
 if __name__ == "__main__":
     main()

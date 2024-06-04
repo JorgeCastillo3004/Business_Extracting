@@ -10,6 +10,8 @@ import json
 import os
 import time
 import random
+import re
+# import chromedriver_autoinstaller
 
 def load_json(filename):
     # Opening JSON file
@@ -18,6 +20,18 @@ def load_json(filename):
             json_object = json.load(openfile)
         return json_object
     return []
+
+def restart_continue(folder):
+    user = input('Type r to restart or any to continue: ')
+    if user == 'r':
+        data = []
+        save_check_point(f'{folder}/data.json', data)
+        check_point = {'category':'', 'location':'', 'search_rank':1}
+        save_check_point(f'{folder}/checkpoint.json', check_point)
+        print("Restart search")
+    else:        
+        check_point = load_check_point(f'{folder}/checkpoint.json')
+    return check_point
 
 def save_list_to_json(file_path, data_list):
     with open(file_path, 'w', encoding='utf-8') as json_file:
@@ -34,10 +48,9 @@ def load_check_point(filename):
     if os.path.isfile(filename):
         with open(filename, 'r') as openfile:        
             json_object = json.load(openfile)
-        return json_object['index'] + 1
-
+        return json_object
     else:
-        return 0
+        return {'category':'', 'location':'', 'search_rank':1}
 
 def open_firefox_with_profile(url, headless= True):
     geckodriver_path = "/usr/local/bin/geckodriver" 
@@ -60,6 +73,34 @@ def open_firefox_with_profile(url, headless= True):
     driver.get(url)
     
     return driver
+
+def launch_navigator(url, hadless=False):
+	options = webdriver.ChromeOptions()
+	options.add_argument("--disable-application-cache")
+	options.add_argument("--disable-extensions")
+	options.add_argument("--disable-gpu")
+	options.add_argument("--disable-infobars")
+	options.add_argument("--disable-popup-blocking")
+	options.add_argument("--disable-web-security")
+	options.add_argument("--incognito")
+	options.add_argument("--start-maximized")
+	options.add_argument("--disable-blink-features=AutomationControlled")     
+	# options.add_experimental_option("excludeSwitches", ["enable-automation"]) ----
+	options.add_experimental_option("useAutomationExtension", False)
+	if hadless:
+		options.add_argument('--headless')
+	options.add_argument('--no-sandbox')
+	# options.add_argument('--disable-dev-shm-usage')  ---	
+	# chrome_path = os.getcwd()+'/chrome_files'
+	# print("chrome_path: ", chrome_path)
+	# options.add_argument(r"user-data-dir={}".format(chrome_path))
+	# options.add_argument(r"profile-directory=Profile1")
+
+	drive_path = Service('/usr/local/bin/chromedriver')
+    
+	driver = webdriver.Chrome()#service=drive_path,  options=options
+	driver.get(url)
+	return driver
 
 def continue_stop():
     user = input('Type s to stop: ')
@@ -136,7 +177,7 @@ def get_business_email(driver):
         email = mailto_link.get_attribute('href').replace('mailto:', '')
         return email
     except:
-        print("Mail don't found")
+        pass
     
     try:
         # Search for email in visible text
@@ -145,7 +186,7 @@ def get_business_email(driver):
         if emails_found:
             return emails_found[0]
     except:
-        print("Email in visible text not found:")
+        pass
     
     try:
         # Search for email in meta tags
@@ -156,7 +197,7 @@ def get_business_email(driver):
             if emails_found:
                 return emails_found[0]
     except:
-        print("Email in meta tags not found:")
+        pass
     
     try:
         # Search for email in a specific div or p tag
@@ -166,7 +207,7 @@ def get_business_email(driver):
             if emails_found:
                 return emails_found[0]
     except:
-        print("Email in specific div or p tags not found:")
+        pass
     return ''
 
 def random_sleep(start=1, end=2):
@@ -178,17 +219,36 @@ def human_typing(element, text, start=0.05, end=0.15):
         random_sleep(start, end)
 
 def random_mouse_movement(driver):
-    action = ActionChains(driver)
-    for _ in range(random.randint(5, 10)):
-        x_offset = random.randint(0, 20)
-        y_offset = random.randint(0, 20)
-        action.move_by_offset(x_offset, y_offset).perform()
-        random_sleep(0.2, 0.5)
+    try:
+        action = ActionChains(driver)
+        for _ in range(random.randint(5, 10)):
+            x_offset = random.randint(0, 20)
+            y_offset = random.randint(0, 20)
+            action.move_by_offset(x_offset, y_offset).perform()
+            random_sleep(0.2, 0.5)
+    except:
+        pass
 
 def random_page_interaction(driver):
-    actions = [Keys.PAGE_DOWN, Keys.PAGE_UP, Keys.HOME, Keys.END]
-    action = ActionChains(driver)
-    for _ in range(random.randint(3, 7)):
-        action.send_keys(random.choice(actions)).perform()
-        random_sleep(0.5, 1.5)
+    try:
+        actions = [Keys.PAGE_DOWN, Keys.PAGE_UP, Keys.HOME, Keys.END]
+        action = ActionChains(driver)
+        for _ in range(random.randint(3, 7)):
+            action.send_keys(random.choice(actions)).perform()
+            random_sleep(0.5, 1.5)
+    except:
+        pass
 
+def clean_string(string):
+    string = string.replace('\n', ' ').replace('\r', ' ')    
+    string = re.sub(r'\s+', ' ', string).strip()
+    return string
+
+def found_numbers(string):
+    decimals = re.findall(r'\d+', string)
+    # Convertir los números a enteros
+    if decimals:
+        decimals = decimals[0]
+        return float(decimals)
+    else:
+        return None
