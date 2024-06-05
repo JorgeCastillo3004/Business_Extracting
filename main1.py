@@ -206,7 +206,7 @@ def get_phone(block):
 def click_next(driver, search_counter, index, maxtry = 5):
     webdriver.ActionChains(driver).send_keys(Keys.END).perform()
     wait = WebDriverWait(driver, 10)
-    
+    driver.save_screenshot('click_next.png')
     count = 0
     while count < maxtry:
         print('CN-', count, end=' ')
@@ -229,7 +229,7 @@ def click_next(driver, search_counter, index, maxtry = 5):
                 return search_counter, False
         except:
             count += 1
-            random_sleep(start=3, end=5)
+            random_sleep(start=3, end= 5)
     return search_counter, False
 
 def click_social_media_links(block, driver):
@@ -289,7 +289,7 @@ def extract(driver, check_point, outfile):
         xpath_expression = 'row.businessCapsule--mainRow'
         blocks = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, xpath_expression)))
         random_sleep(start=0.5, end=1)
-        for index, block in enumerate(blocks):# delete [content]
+        for index, block in enumerate(blocks[:2]):# delete [content]
             # Update search rank value
             search_rank = search_counter + index            
             if search_rank > int(check_point['search_rank']) or check_point['search_rank'] == 1: # enable if search_rank match with checkpoint.
@@ -352,7 +352,8 @@ def extract(driver, check_point, outfile):
                 # SAVE CHECK POINT 
                 check_point = {'category':check_point['category'], 'location':check_point['location'],
                                 'search_rank':search_rank}
-                save_check_point(f'{folder}/checkpoint.json', check_point)                
+                save_check_point(f'{folder}/checkpoint.json', check_point)
+                driver.save_screenshot('result.png')
         # continue_stop()
         df = pd.DataFrame(data)
         df.to_csv(f'{folder}/{folder}_out.csv')
