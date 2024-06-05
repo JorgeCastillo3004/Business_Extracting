@@ -209,6 +209,7 @@ def click_next(driver, search_counter, index, maxtry = 5):
     
     count = 0
     while count < maxtry:
+        print('CN-', count, end=' ')
         try:
             webdriver.ActionChains(driver).send_keys(Keys.END).perform()
             next_page_button = driver.find_elements(By.XPATH, "//a[contains(text(), 'Next')]")
@@ -359,9 +360,7 @@ def extract(driver, check_point, outfile):
         #         CLICK NEXT PAGE                   #
         #############################################
         search_counter, next_found = click_next(driver, search_counter, index)
-        random_sleep(start = 1, end = 1.5)            
-        print(f"search_counter {search_counter}")
-        print("Click Next ready")
+        random_sleep(start = 1, end = 1.5)        
         if not next_found:
             break
     return data

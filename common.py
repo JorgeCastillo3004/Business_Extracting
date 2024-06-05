@@ -63,15 +63,15 @@ def open_firefox_with_profile(url, headless= True):
     options.add_argument('--disable-browser-side-navigation')
     options.add_argument('--disable-gpu')
     options.add_argument('--no-sandbox')
+    options.add_argument("--start-masximized")
     if headless:
         print('Mode headless')
         options.add_argument('--headless')
 
     service = Service(geckodriver_path)
-    driver = webdriver.Firefox(options=options)
-    
+    driver = webdriver.Firefox(options=options)    
     driver.get(url)
-    
+    driver.execute_script("document.body.style.zoom='50%'")    
     return driver
 
 def launch_navigator(url, hadless=False):
