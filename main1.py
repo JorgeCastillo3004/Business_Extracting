@@ -229,7 +229,7 @@ def click_next(driver, search_counter, index, maxtry = 5):
                 return search_counter, False
         except:
             count += 1
-            random_sleep()
+            random_sleep(start=3, end=5)
     return search_counter, False
 
 def click_social_media_links(block, driver):
