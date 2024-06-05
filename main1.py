@@ -367,32 +367,39 @@ def extract(driver, check_point, outfile):
     return data
 
 def main():
-    url1 = 'https://www.yell.com/'
-    driver = open_firefox_with_profile(url1, headless= True)
-    directory_path = 'files_yell'    
-    check_point = restart_continue(directory_path) # check and load checkpoint.
-    search_settings = load_json('search_settings.json')
-    count = 0
-    for category in search_settings['categories']:
-        for location in search_settings['locations']:
-
-            cond1 = check_point['category'] == category
-            cond2 = check_point['location'] == location
-            cond3 = check_point['category'] == ''
-            
-            if cond1 and  cond2 or cond3:
-                print(category, location)
-                check_point['category'] = category
-                check_point['location'] = location
-                make_search(driver, category, location)
-                random_sleep(start = 4, end= 5)
-                ensure_directory_exists(directory_path)
-                # extract(driver, location, f'{directory_path}/{category}_{category}_out.csv')
-                data = extract(driver, check_point, f'{directory_path}/{category}_{category}_out.csv')
-                check_point['category'] == ''
-        if data:
-            df = pd.DataFrame(data)
-            df.to_csv(f'{directory_path}/{directory_path}_out.csv')
+    try:
+        url1 = 'https://www.yell.com/'
+        url1 = 'https://www.yell.com/'
+        driver = open_firefox_with_profile(url1, headless=True)
+        driver.set_window_size(1400, 800)
+        directory_path = 'files_yell'
+        ensure_directory_exists(directory_path)
+        check_point = restart_continue(directory_path) # check and load checkpoint.
+        search_settings = load_json('search_settings.json')
+        count = 0
+        for category in search_settings['categories']:
+            for location in search_settings['locations']:
+                print(f"Category: {category} location {location}")
+                cond1 = check_point['category'] == category
+                cond2 = check_point['location'] == location
+                cond3 = check_point['category'] == ''
+                
+                if cond1 and  cond2 or cond3:
+                    print(category, location)
+                    check_point['category'] = category
+                    check_point['location'] = location
+                    driver.execute_script("document.body.style.zoom='50%'")
+                    make_search(driver, category, location)# make_search(driver, 'restaurants', 'london')
+                    random_sleep(start = 4, end= 5)            
+                    # extract(driver, location, f'{directory_path}/{category}_{category}_out.csv')
+                    extract(driver, check_point, f'{directory_path}/{category}_{category}_out.csv')
+                    check_point['category'] = ''
+                    check_point['search_rank'] = 1
+            if data:
+                df = pd.DataFrame(data)
+                df.to_csv(f'{directory_path}/{directory_path}_out.csv')
+    except:
+        driver.quit()
 
 if __name__ == "__main__":
     main()
