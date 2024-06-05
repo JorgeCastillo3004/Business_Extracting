@@ -203,7 +203,8 @@ def get_phone(block):
     except:
         return ''
 
-def click_next(driver, search_counter, index, maxtry = 5):
+def click_next(driver, search_counter, index, maxtry = 8):
+    driver.execute_script("document.body.style.zoom='50%'")
     webdriver.ActionChains(driver).send_keys(Keys.END).perform()
     wait = WebDriverWait(driver, 10)
     driver.save_screenshot('click_next.png')
@@ -212,6 +213,7 @@ def click_next(driver, search_counter, index, maxtry = 5):
         print('CN-', count, end=' ')
         try:
             webdriver.ActionChains(driver).send_keys(Keys.END).perform()
+            webdriver.ActionChains(driver).send_keys(Keys.PAGE_UP).perform()
             next_page_button = driver.find_elements(By.XPATH, "//a[contains(text(), 'Next')]")
             if next_page_button:        
                 blocks = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'row.businessCapsule--mainRow')))
