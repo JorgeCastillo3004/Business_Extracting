@@ -373,7 +373,7 @@ def main():
     try:
         url1 = 'https://www.yell.com/'
         driver = open_firefox_with_profile(url1, headless=True)
-        driver.set_window_size(1600, 900)
+        driver.set_window_size(1800, 900)
         directory_path = 'files_yell'
         ensure_directory_exists(directory_path)
         check_point = restart_continue(directory_path) # check and load checkpoint.
