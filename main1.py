@@ -210,8 +210,9 @@ def click_next(driver, search_counter, index, maxtry = 8):
     driver.save_screenshot('click_next.png')
     count = 0
     while count < maxtry:
-        print('CN-', count, end=' ')
+        print('CN-', count)
         try:
+            driver.execute_script("document.body.style.zoom='50%'")
             webdriver.ActionChains(driver).send_keys(Keys.END).perform()
             webdriver.ActionChains(driver).send_keys(Keys.PAGE_UP).perform()
             next_page_button = driver.find_elements(By.XPATH, "//a[contains(text(), 'Next')]")
@@ -370,7 +371,6 @@ def extract(driver, check_point, outfile):
 
 def main():
     try:
-        url1 = 'https://www.yell.com/'
         url1 = 'https://www.yell.com/'
         driver = open_firefox_with_profile(url1, headless=True)
         driver.set_window_size(1400, 800)
