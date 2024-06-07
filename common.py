@@ -11,6 +11,9 @@ import os
 import time
 import random
 import re
+import threading
+from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
+
 # import chromedriver_autoinstaller
 
 def load_json(filename):
@@ -26,7 +29,7 @@ def restart_continue(folder):
     if user == 'r':
         data = []
         save_check_point(f'{folder}/data.json', data)
-        check_point = {'category':'', 'location':'', 'search_rank':1}
+        check_point = {'category':'', 'location':'', 'page':1,'search_rank':1}
         save_check_point(f'{folder}/checkpoint.json', check_point)
         print("Restart search")
     else:        
@@ -51,30 +54,6 @@ def load_check_point(filename):
         return json_object
     else:
         return {'category':'', 'location':'', 'search_rank':1}
-
-def open_firefox_with_profile(url, headless= True):
-    geckodriver_path = "/usr/local/bin/geckodriver" 
-
-    # Configurar las opciones del navegador
-    options = Options()
-    options.add_argument('--disable-blink-features=AutomationControlled')
-    options.add_argument('--disable-infobars')
-    options.add_argument('--disable-dev-shm-usage')
-    options.add_argument('--disable-browser-side-navigation')
-    options.add_argument('--disable-gpu')
-    options.add_argument('--no-sandbox')    
-    # options.add_argument("--width=1024")
-    # options.add_argument("--height=768")
-    # options.add_argument("--start-masximized")
-    if headless:
-        print('Mode headless')
-        options.add_argument('--headless')
-
-    service = Service(geckodriver_path)
-    driver = webdriver.Firefox(options=options)    
-    driver.get(url)
-    driver.execute_script("document.body.style.zoom='50%'")    
-    return driver
 
 def launch_navigator(url, hadless=False):
 	options = webdriver.ChromeOptions()
@@ -254,3 +233,28 @@ def found_numbers(string):
         return float(decimals)
     else:
         return None
+
+class TimeoutExpired(Exception):
+    pass
+
+def input_with_timeout(prompt, timeout):
+    def get_input():
+        nonlocal user_input
+        user_input = input(prompt)
+    
+    user_input = None
+    thread = threading.Thread(target=get_input)
+    thread.start()
+    thread.join(timeout)
+    if thread.is_alive():
+        raise TimeoutExpired
+    return user_input
+
+def get_input_user(mensaje, valor_por_defecto, tiempo_limite):
+    try:
+        user_input = input_with_timeout(f"{mensaje} (Type r to restart '{valor_por_defecto}') o espera {tiempo_limite} segundos: ", tiempo_limite)
+        if user_input is None or user_input.strip() == "":
+            return valor_por_defecto
+        return user_input
+    except TimeoutExpired:
+        return valor_por_defecto

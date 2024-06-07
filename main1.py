@@ -16,6 +16,7 @@ import re
 import time
 from common import *
 import pandas as pd
+from navigator_settings import *
 
 def launch_navigator_old(url, headless = True):
     options = webdriver.ChromeOptions()
@@ -205,6 +206,9 @@ def get_phone(block):
 
 def click_next(driver, search_counter, index, maxtry = 8):
     driver.execute_script("document.body.style.zoom='50%'")
+    simulate_human_interaction(driver)
+    # random_mouse_movement(driver)
+    # random_page_interaction(driver)
     webdriver.ActionChains(driver).send_keys(Keys.END).perform()
     wait = WebDriverWait(driver, 10)
     driver.save_screenshot('click_next.png')
@@ -233,6 +237,8 @@ def click_next(driver, search_counter, index, maxtry = 8):
         except:
             count += 1
             random_sleep(start=0.5, end= 1.5)
+    random_sleep(start=4, end= 6)
+    continue_stop()
     return search_counter, False
 
 def click_social_media_links(block, driver):
@@ -279,11 +285,45 @@ def click_social_media_links(block, driver):
         close_back_main_window(driver)
         return {}
 
+def get_current_page(driver):
+    xpath_expression = f"//span[@class='btn btn-blue']"
+    return int(driver.find_element(By.XPATH, xpath_expression).text)
+
+def click_last_page_checked(driver, page_number, human_behaivor = True):
+    print(f"Click in last page number: {page_number}", type(page_number))
+    if page_number != 1:
+        driver.execute_script("document.body.style.zoom='50%'")
+        ###################################
+        #    SIMULATE HUMAN INTERACTION   #
+        ###################################
+        if human_behaivor:
+            simulate_human_interaction(driver)        
+        webdriver.ActionChains(driver).send_keys(Keys.END).perform()
+        
+        ###################################
+        #    LOAD CURRENTS BLOCKS         #
+        ###################################
+        wait = WebDriverWait(driver, 10)
+        blocks = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'row.businessCapsule--mainRow')))
+
+        ##########################################
+        #  FIND PAGE OF CHECK POINT AND CLICK    #
+        ##########################################
+        xpath_expression = f"//a[@aria-label='Page {page_number}']"
+        page_number = driver.find_elements(By.XPATH, xpath_expression)
+        if page_number:
+            page_number[0].click()
+        
+            ###################################
+            #     WAIT STALENESS BLOCK        #
+            ###################################
+            wait.until(EC.staleness_of(blocks[0])) # wait until staleness first block
+
 def extract(driver, check_point, outfile):
     print("Input check point: ", check_point)
     folder = outfile.split('/')[0]    
     enable = False
-    search_counter = 1   
+    search_counter = check_point['search_rank']
     data = load_json(f'{folder}/data.json')    
     # check_point = load_check_point(f'{folder}/checkpoint.json')
 
@@ -295,9 +335,10 @@ def extract(driver, check_point, outfile):
         for index, block in enumerate(blocks):# delete [content]
             # Update search rank value
             search_rank = search_counter + index            
-            if search_rank > int(check_point['search_rank']) or check_point['search_rank'] == 1: # enable if search_rank match with checkpoint.
+            # if search_rank > int(check_point['search_rank']) or check_point['search_rank'] == 1: # enable if search_rank match with checkpoint.
+            #     enable = True    
+            if index > check_point['index']:
                 enable = True
-    #         enable = False
             if enable:
                 #############################################
                 #         EXTRACT COMPANY NAME              #
@@ -352,8 +393,13 @@ def extract(driver, check_point, outfile):
                 
                 save_check_point(f'{folder}/data.json', data)
 
+                # get current page number
+                page_number = get_current_page(driver)
                 # SAVE CHECK POINT 
-                check_point = {'category':check_point['category'], 'location':check_point['location'],
+                check_point = {'category':check_point['category'],
+                                'location':check_point['location'],
+                                 'page':page_number,
+                                 'index': index,
                                 'search_rank':search_rank}
                 save_check_point(f'{folder}/checkpoint.json', check_point)
                 driver.save_screenshot('result.png')
@@ -384,18 +430,19 @@ def main():
                 print(f"Category: {category} location {location}")
                 cond1 = check_point['category'] == category
                 cond2 = check_point['location'] == location
-                cond3 = check_point['category'] == ''
-                
+                cond3 = check_point['category'] == ''                
                 if cond1 and  cond2 or cond3:
                     print(category, location)
                     check_point['category'] = category
                     check_point['location'] = location
                     driver.execute_script("document.body.style.zoom='50%'")
                     make_search(driver, category, location)# make_search(driver, 'restaurants', 'london')
+                    click_last_page_checked(driver, check_point['page'], human_behaivor = False)
                     random_sleep(start = 4, end= 5)            
                     # extract(driver, location, f'{directory_path}/{category}_{category}_out.csv')
-                    extract(driver, check_point, f'{directory_path}/{category}_{category}_out.csv')
+                    data = extract(driver, check_point, f'{directory_path}/{category}_{category}_out.csv')
                     check_point['category'] = ''
+                    check_point['page'] = 1
                     check_point['search_rank'] = 1
             if data:
                 df = pd.DataFrame(data)
