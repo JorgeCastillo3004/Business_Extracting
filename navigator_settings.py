@@ -21,10 +21,10 @@ def open_firefox_with_profile(url, headless= True):
     options.add_argument('--no-sandbox')
     if headless:
         print('Mode headless')
-        options.add_argument('--headless')
-    profile_path = "/home/jorge/.mozilla/firefox/lf4ga6zv.default-release"
-    profile = FirefoxProfile(profile_path)
-    options.profile = profile
+        options.add_argument('--headless')    
+    # profile_path = "/home/jorge/.mozilla/firefox/lf4ga6zv.default-release"
+    # profile = FirefoxProfile(profile_path)
+    # options.profile = profile
     service = Service(geckodriver_path)
     driver = webdriver.Firefox(options=options)    
     driver.get(url)
