@@ -416,7 +416,7 @@ def extract(driver, check_point, outfile):
     return data
 
 def main():
-    try:
+    # try:
         url1 = 'https://www.yell.com/'
         driver = open_firefox_with_profile(url1, headless=True)
         driver.set_window_size(1800, 900)
@@ -447,8 +447,8 @@ def main():
             if data:
                 df = pd.DataFrame(data)
                 df.to_csv(f'{directory_path}/{directory_path}_out.csv')
-    except:
-        driver.quit()
+    # except:
+    #     driver.quit()
 
 if __name__ == "__main__":
     main()
