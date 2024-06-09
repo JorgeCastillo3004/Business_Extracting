@@ -337,7 +337,7 @@ def extract(driver, check_point, outfile):
             search_rank = search_counter + index            
             # if search_rank > int(check_point['search_rank']) or check_point['search_rank'] == 1: # enable if search_rank match with checkpoint.
             #     enable = True    
-            if index > check_point['index']:
+            if index > check_point['index'] or check_point['search_rank'] == 1:
                 enable = True
             if enable:
                 #############################################
@@ -417,11 +417,15 @@ def extract(driver, check_point, outfile):
 
 def main():
     # try:
-        url1 = 'https://www.yell.com/'
-        driver = open_firefox_with_profile(url1, headless=True)
-        driver.set_window_size(1800, 900)
         directory_path = 'files_yell'
         ensure_directory_exists(directory_path)
+        url1 = 'https://www.yell.com/'
+
+        # DRIVER CREATION AND SETTINGS
+        driver = open_firefox_with_profile(url1, headless=True)
+        driver.set_window_size(1800, 900)        
+        
+        # CHECK POINT AND SETTINGS
         check_point = restart_continue(directory_path) # check and load checkpoint.
         search_settings = load_json('search_settings.json')
         count = 0

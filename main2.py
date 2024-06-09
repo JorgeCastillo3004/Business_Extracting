@@ -14,7 +14,7 @@ import os
 import re
 import time
 import pandas as pd
-
+from navigator_settings import *
 from common import *
 
 def launch_navigator(url, headless=True):
@@ -102,7 +102,7 @@ def make_search(driver, category, city):
     search_localization = driver.find_element(By.ID, 'search_location')
     human_typing(search_localization, city + '\n', start=0.05, end=0.15)
 
-    # search_localization.send_keys(city + '\n')
+    webdriver.ActionChains(driver).send_keys(Keys.ENTER).perform()
 
 def extract_name(block, start_1 = 1, start_2 = 2, end_1 = 3, end_2 = 3):
     random_sleep(start=start_1, end=end_1)
@@ -264,8 +264,7 @@ def click_next(driver, search_counter, index):
     if next_page_button:
 
         xpath_expression = "//li/div[starts-with(@class, 'container__')]"        
-        blocks = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_expression)))
-    #     block_test  = blocks[0].copy
+        blocks = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_expression)))    
 
     #     time.sleep(0.5)
     #     next_page_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[span[contains(text(), 'Next Page')]]")))
@@ -276,17 +275,45 @@ def click_next(driver, search_counter, index):
             
         # else:
         blocks = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_expression)))
-        search_counter += index
-    return search_counter
+        search_counter += index + 1
+        return search_counter, True
+    return search_counter, False
 
-def extract(driver, city, outfile):
+def get_current_page(driver):    
+    xpath_expression = '//span[@aria-current="true"]//*[contains(@aria-label, "Page")]'
+    return int(driver.find_element(By.XPATH, xpath_expression).text)
+
+
+def click_last_page_checked(driver, page_number):
+    print(f"Click in last page number: {page_number}", type(page_number))
+    if page_number != 1:
+        driver.execute_script("document.body.style.zoom='50%'")        
+        ###################################
+        #    LOAD CURRENTS BLOCKS         #
+        ###################################
+        wait = WebDriverWait(driver, 10)        
+        blocks = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "//li/div[starts-with(@class, 'container__')]")))
+
+        ##########################################
+        #  FIND PAGE OF CHECK POINT AND CLICK    #
+        ##########################################        
+        xpath_expression = f'//div[@aria-label="Page: {page_number}"]'
+        page_number = driver.find_elements(By.XPATH, xpath_expression)
+        if page_number:
+            page_number[0].click()
+        
+            ###################################
+            #     WAIT STALENESS BLOCK        #
+            ###################################
+            wait.until(EC.staleness_of(blocks[0])) # wait until staleness first block
+
+def extract(driver, check_point, outfile):
     folder = outfile.split('/')[0]
     data = load_json(f'{folder}/data.json')
-    check_point = load_check_point(f'{folder}/checkpoint.json')
     enable = False
-    search_counter = 1
+    search_rank = check_point['search_rank']
 
-    print("search_counter: ", search_counter)
+    print("search_rank: ", search_rank)
     print(f"check_point {check_point}")
     while True:
     #     blocks = driver.find_elements(By.XPATH, '//div[@data-testid="serp-ia-card"]')
@@ -294,11 +321,11 @@ def extract(driver, city, outfile):
         xpath_expression = "//li/div[starts-with(@class, 'container__')]"
         blocks = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_expression)))
         random_sleep(start=0.5, end=1)
-        for index, block in enumerate(blocks):
-            print(f"Index {index}, search_counter: {search_counter}")
-            if check_point == index or check_point >= len(blocks): # enable if index match with checkpoint.
+        for index, block in enumerate(blocks):            
+            # if check_point == index or check_point >= len(blocks): # enable if index match with checkpoint.
+            #     enable = True
+            if index > check_point['index'] or check_point['index'] == 0:
                 enable = True
-    #         enable = False
             if enable:
                 #############################################
                 #         EXTRACT COMPANY NAME              #
@@ -308,7 +335,7 @@ def extract(driver, city, outfile):
                 #############################################
                 #         EXTRACT SEARCH RANKING            #
                 #############################################
-                search_rank, company_name =  extract_search_rank_and_company_name(company_name, search_counter, index)
+                search_rank, company_name =  extract_search_rank_and_company_name(company_name, search_rank, index)
                 print(f"search_rank: {search_rank}, company_name: {company_name}")
                 random_sleep(start=0.2, end=1.5)
                 
@@ -331,7 +358,7 @@ def extract(driver, city, outfile):
                 #############################################
                 #         BUILD DATA DICT                   #
                 #############################################
-                row = complete_data(city, search_rank, company_name, categories, profile_URL, full_address,
+                row = complete_data(check_point['location'], search_rank, company_name, categories, profile_URL, full_address,
                               phone_numbers, website, rating, no_of_reviews)
                 random_sleep(start=0.5, end=1.5)
                 social_links = {}
@@ -339,40 +366,60 @@ def extract(driver, city, outfile):
                     social_links = extract_social_media_links(driver, profile_URL)
 
                 row.update(social_links)
-        #         continue_stop()
                 data.append(row)
-                save_check_point(f'{folder}/data.json', data)
 
+                # get current page number
+                page_number = get_current_page(driver)
                 # SAVE CHECK POINT 
-                save_check_point(f'{folder}/checkpoint.json', {'index':index})
+                check_point = {'category':check_point['category'],
+                                'location':check_point['location'],
+                                 'page':page_number,
+                                 'index': index,
+                                'search_rank':search_rank}
+                save_check_point(f'{folder}/checkpoint.json', check_point)
+                save_check_point(f'{folder}/data.json', data)
         #############################################
         #         CLICK NEXT PAGE                   #
-        #############################################
-        try:
-            print("Click on next")
-            search_counter = click_next(driver, search_counter, index)
-            random_sleep(start = 1, end = 1.5)
-            print(f"search_counter {search_counter}")
-        except:
+        #############################################        
+        print("Click on next")
+        search_rank, flag_next = click_next(driver, search_rank, index)
+        random_sleep(start = 1, end = 1.5)
+        print(f"search_rank {search_rank}")
+        if not flag_next:
             break
+        return data
         
     df = pd.DataFrame(data)
     df.to_csv(outfile)
     
 def main():
-    # driver = launch_navigator('https://www.yelp.co.uk/')
-    directory_path = 'files_yelp'    
-    driver = open_firefox_with_profile('https://www.yelp.co.uk/', headless= True)    
+    # CREATE DIRECTORY
+    directory_path = 'files_yelp'
+    ensure_directory_exists(directory_path)
+    
+    # DRIVER CREATION AND SETTINGS
+    driver = open_firefox_with_profile('https://www.yelp.co.uk/', headless= True)
+    driver.set_window_size(1800, 900)
 
+    # CHECK POINT AND SETTINGS
+    check_point = restart_continue(directory_path) # check and load checkpoint.
     search_settings = load_json('search_settings.json')
     count = 0
     for category in search_settings['categories']:
-        for city in search_settings['locations']:
-            print(category, city)            
-            make_search(driver, category, city)
-            random_sleep(start = 1, end= 3)
-            ensure_directory_exists(directory_path)
-            extract(driver, city, f'{directory_path}/{category}_{category}_out.csv')
+        for location in search_settings['locations']:
+            print(f"Category: {category} location {location}")
+            cond1 = check_point['category'] == category
+            cond2 = check_point['location'] == location
+            cond3 = check_point['category'] == ''                
+            if cond1 and  cond2 or cond3:
+                make_search(driver, category, location)
+                click_last_page_checked(driver, check_point['page'])
+                random_sleep(start = 1, end= 3)
+                data = extract(driver, check_point, f'{directory_path}/{category}_{category}_out.csv')
+                check_point['category'] = ''
+                check_point['page'] = 1
+                check_point['search_rank'] = 1
+                check_point['index'] = 0
 
 if __name__ == "__main__":
     main()

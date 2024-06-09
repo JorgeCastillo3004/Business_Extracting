@@ -29,7 +29,7 @@ def restart_continue(folder):
     if user == 'r':
         data = []
         save_check_point(f'{folder}/data.json', data)
-        check_point = {'category':'', 'location':'', 'page':1,'search_rank':1}
+        check_point = {'category':'', 'location':'', 'page':1,'index':0,'search_rank':1}
         save_check_point(f'{folder}/checkpoint.json', check_point)
         print("Restart search")
     else:        
