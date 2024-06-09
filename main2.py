@@ -405,21 +405,25 @@ def main():
     check_point = restart_continue(directory_path) # check and load checkpoint.
     search_settings = load_json('search_settings.json')
     count = 0
-    for category in search_settings['categories']:
-        for location in search_settings['locations']:
-            print(f"Category: {category} location {location}")
-            cond1 = check_point['category'] == category
-            cond2 = check_point['location'] == location
-            cond3 = check_point['category'] == ''                
-            if cond1 and  cond2 or cond3:
-                make_search(driver, category, location)
-                click_last_page_checked(driver, check_point['page'])
-                random_sleep(start = 1, end= 3)
-                data = extract(driver, check_point, f'{directory_path}/{category}_{category}_out.csv')
-                check_point['category'] = ''
-                check_point['page'] = 1
-                check_point['search_rank'] = 1
-                check_point['index'] = 0
+    try:
+        for category in search_settings['categories']:
+            for location in search_settings['locations']:
+                print(f"Category: {category} location {location}")
+                cond1 = check_point['category'] == category
+                cond2 = check_point['location'] == location
+                cond3 = check_point['category'] == ''                
+                if cond1 and  cond2 or cond3:
+                    make_search(driver, category, location)
+                    click_last_page_checked(driver, check_point['page'])
+                    random_sleep(start = 1, end= 3)
+                    data = extract(driver, check_point, f'{directory_path}/{category}_{category}_out.csv')
+                    check_point['category'] = ''
+                    check_point['page'] = 1
+                    check_point['search_rank'] = 1
+                    check_point['index'] = 0
+    except:
+        driver.save_screenshot('issue.png')
+        driver.quit()
 
 if __name__ == "__main__":
     main()
