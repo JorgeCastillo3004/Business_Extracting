@@ -421,6 +421,7 @@ def main():
                     check_point['page'] = 1
                     check_point['search_rank'] = 1
                     check_point['index'] = 0
+                random_sleep(start=50, end=90)
     except:
         driver.save_screenshot('issue.png')
         driver.quit()
