@@ -240,14 +240,14 @@ def get_more_info(driver, block, max_value = 5):
             if count_try == max_value:
                 break
             click_more_info(block)
-            random_sleep(start=1, end=2)
+            random_sleep(start=2, end=6)
             change_windows(driver)
             profile_URL, phone_numbers, full_address = get_phone_url_addres(driver)
             #############################################
-            random_sleep(start=1, end=2)
+            random_sleep(start=2, end=6)
             website = get_website(driver) # Get business website
 
-            random_sleep(start=1, end=2)
+            random_sleep(start=2, end=6)
             close_back_main_window(driver)
             return profile_URL, phone_numbers, full_address, website
         # except:                
@@ -258,72 +258,127 @@ def get_more_info(driver, block, max_value = 5):
         #         driver.switch_to.window(all_windows[0])
     return '', '', '', ''
 
-def click_next(driver, search_counter, index):
-    wait = WebDriverWait(driver, 10)
-    next_page_button = driver.find_elements(By.XPATH, "//button[span[contains(text(), 'Next Page')]]")
-    if next_page_button:
+def click_next(driver, search_counter, index, maxtry = 8):
+    count = 0
+    while count < maxtry:
+        print('CN-', count)
+        try:
+            driver.execute_script("document.body.style.zoom='50%'")
+            webdriver.ActionChains(driver).send_keys(Keys.END).perform()
+            random_sleep(start=1, end=2)
+            webdriver.ActionChains(driver).send_keys(Keys.PAGE_UP).perform()
+            random_sleep(start=1, end=2)
+            wait = WebDriverWait(driver, 10)
+            webdriver.ActionChains(driver).send_keys(Keys.END).perform()
+            random_sleep(start=1, end=2)
+            xpath_expression = "//button[@type='submit' and not(@disabled) and span[contains(text(), 'Next Page')]]"
+            next_page_button = driver.find_elements(By.XPATH, xpath_expression)
+            if next_page_button:
+                print("Inside next button: ")
+                xpath_expression = "//li/div[starts-with(@class, 'container__')]"        
+                blocks = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_expression)))    
 
-        xpath_expression = "//li/div[starts-with(@class, 'container__')]"        
-        blocks = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_expression)))    
+            #     time.sleep(0.5)
+            #     next_page_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[span[contains(text(), 'Next Page')]]")))
+                next_page_button[0].click()
 
-    #     time.sleep(0.5)
-    #     next_page_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[span[contains(text(), 'Next Page')]]")))
-        next_page_button[0].click()
+                if len(blocks) != 0: # Check if exists blocks
+                    wait.until(EC.staleness_of(blocks[0])) # wait until staleness first block 
+                    
+                # else:
+                blocks = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_expression)))
+                search_counter += index + 1
 
-        if len(blocks) != 0: # Check if exists blocks
-            wait.until(EC.staleness_of(blocks[0])) # wait until staleness first block 
-            
-        # else:
-        blocks = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_expression)))
-        search_counter += index + 1
-        return search_counter, True
+                print("############ CLICK ON NEXT PAGE ############")
+                return search_counter, True
+            count = maxtry
+        except:
+            count += 1
     return search_counter, False
 
 def get_current_page(driver):    
     xpath_expression = '//span[@aria-current="true"]//*[contains(@aria-label, "Page")]'
     return int(driver.find_element(By.XPATH, xpath_expression).text)
 
+def click_last_show(driver):
+    webdriver.ActionChains(driver).send_keys(Keys.END).perform()
+    random_sleep(start=1.5, end = 3.5)
+    webdriver.ActionChains(driver).send_keys(Keys.PAGE_UP).perform()
+    random_sleep(start=0.3, end = 0.5)
+    webdriver.ActionChains(driver).send_keys(Keys.END).perform()
+    wait = WebDriverWait(driver, 10)        
+    blocks = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//li/div[starts-with(@class, 'container__')]")))   
+
+    xpath_expression = '//div[starts-with(@aria-label, "Page:")]'
+    elements = driver.find_elements(By.XPATH, xpath_expression)
+    clickable_elements = []
+
+    for element in elements:
+        wait = WebDriverWait(element, 10)
+        clickable = wait.until(EC.element_to_be_clickable((By.XPATH, '.')))
+        clickable_elements.append(clickable)
+
+    print(clickable_elements[-1].text, end = ' ')
+    clickable_elements[-1].click()   
+    
+    ###################################
+    #     WAIT STALENESS BLOCK        #
+    ###################################    
+    wait.until(EC.staleness_of(blocks[0])) # wait until staleness first block
 
 def click_last_page_checked(driver, page_number):
+    random_sleep(start=1.5, end = 2.5)
     print(f"Click in last page number: {page_number}", type(page_number))
+    webdriver.ActionChains(driver).send_keys(Keys.END).perform()
+    random_sleep(start=1.5, end = 3.5)
+    webdriver.ActionChains(driver).send_keys(Keys.PAGE_UP).perform()
+    webdriver.ActionChains(driver).send_keys(Keys.END).perform()
     if page_number != 1:
         driver.execute_script("document.body.style.zoom='50%'")        
         ###################################
         #    LOAD CURRENTS BLOCKS         #
-        ###################################
+        ###################################        
+        xpath_expression = "//li/div[starts-with(@class, 'container__')]"
+        # blocks = driver.find_elements(By.XPATH, xpath_expression)
         wait = WebDriverWait(driver, 10)        
-        blocks = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "//li/div[starts-with(@class, 'container__')]")))
+        blocks = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//li/div[starts-with(@class, 'container__')]")))
 
         ##########################################
         #  FIND PAGE OF CHECK POINT AND CLICK    #
         ##########################################        
         xpath_expression = f'//div[@aria-label="Page: {page_number}"]'
-        page_number = driver.find_elements(By.XPATH, xpath_expression)
-        if page_number:
-            page_number[0].click()
-        
+
+        while True:
+            click_last_show(driver)
+            page_number_block = driver.find_elements(By.XPATH, xpath_expression)
+            if page_number_block:
+                blocks = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//li/div[starts-with(@class, 'container__')]")))
+                page_number_block[0].click()
+                print(f"Click on Page: {page_number}")
+                break
+
             ###################################
             #     WAIT STALENESS BLOCK        #
             ###################################
             wait.until(EC.staleness_of(blocks[0])) # wait until staleness first block
+    random_sleep(start=2.5, end = 3.5)
 
 def extract(driver, check_point, outfile):
     folder = outfile.split('/')[0]
     data = load_json(f'{folder}/data.json')
-    enable = False
     search_rank = check_point['search_rank']
 
     print("search_rank: ", search_rank)
     print(f"check_point {check_point}")
     while True:
     #     blocks = driver.find_elements(By.XPATH, '//div[@data-testid="serp-ia-card"]')
+        enable = False
         wait = WebDriverWait(driver, 10)
         xpath_expression = "//li/div[starts-with(@class, 'container__')]"
         blocks = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_expression)))
         random_sleep(start=0.5, end=1)
-        for index, block in enumerate(blocks):            
-            # if check_point == index or check_point >= len(blocks): # enable if index match with checkpoint.
-            #     enable = True
+        for index, block in enumerate(blocks[:3]): # delete slicing cut
+            # clean_screen()
             if index > check_point['index'] or check_point['index'] == 0:
                 enable = True
             if enable:
@@ -382,15 +437,19 @@ def extract(driver, check_point, outfile):
         #         CLICK NEXT PAGE                   #
         #############################################        
         print("Click on next")
+        random_sleep()
         search_rank, flag_next = click_next(driver, search_rank, index)
+        check_point['index'] = 0
+        print(f"search_rank {search_rank}, flag_next {flag_next}")
         random_sleep(start = 1, end = 1.5)
         print(f"search_rank {search_rank}")
         if not flag_next:
             break
-        return data
+            print("Last page, break loop")    
         
     df = pd.DataFrame(data)
     df.to_csv(outfile)
+    return data
     
 def main():
     # CREATE DIRECTORY
@@ -403,20 +462,24 @@ def main():
 
     # CHECK POINT AND SETTINGS
     check_point = restart_continue(directory_path) # check and load checkpoint.
-    search_settings = load_json('search_settings.json')
+    # search_settings = load_json('search_settings.json')
+    categories, locations, pathfile = get_arguments()
     count = 0
     try:
-        for category in search_settings['categories']:
-            for location in search_settings['locations']:
+        for category in categories:
+            for location in locations:
                 print(f"Category: {category} location {location}")
                 cond1 = check_point['category'] == category
                 cond2 = check_point['location'] == location
                 cond3 = check_point['category'] == ''                
                 if cond1 and  cond2 or cond3:
+                    check_point['category'] = category
+                    check_point['location'] = location
+                    driver.execute_script("document.body.style.zoom='50%'")
                     make_search(driver, category, location)
                     click_last_page_checked(driver, check_point['page'])
-                    random_sleep(start = 1, end= 3)
-                    data = extract(driver, check_point, f'{directory_path}/{category}_{category}_out.csv')
+                    random_sleep(start = 4, end= 6)
+                    data = extract(driver, check_point, pathfile)
                     check_point['category'] = ''
                     check_point['page'] = 1
                     check_point['search_rank'] = 1

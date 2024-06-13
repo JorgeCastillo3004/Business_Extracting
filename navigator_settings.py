@@ -8,7 +8,7 @@ from selenium.webdriver.common.by import By
 import random
 import time
 
-def open_firefox_with_profile(url, headless= True):
+def open_firefox_with_profile(url, headless= True, enable_profile=False):
     geckodriver_path = "/usr/local/bin/geckodriver" 
 
     # Configurar las opciones del navegador
@@ -21,10 +21,11 @@ def open_firefox_with_profile(url, headless= True):
     options.add_argument('--no-sandbox')
     if headless:
         print('Mode headless')
-        options.add_argument('--headless')    
-    # profile_path = "/home/jorge/.mozilla/firefox/lf4ga6zv.default-release"
-    # profile = FirefoxProfile(profile_path)
-    # options.profile = profile
+        options.add_argument('--headless')
+    if enable_profile:
+        profile_path = "/home/jorge/.mozilla/firefox/lf4ga6zv.default-release"
+        profile = FirefoxProfile(profile_path)
+        options.profile = profile
     service = Service(geckodriver_path)
     driver = webdriver.Firefox(options=options)    
     driver.get(url)

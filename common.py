@@ -8,13 +8,28 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 import json
 import os
+import sys
 import time
 import random
 import re
 import threading
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
+from IPython.display import clear_output
+import argparse
 
-# import chromedriver_autoinstaller
+def get_arguments():
+    parser = argparse.ArgumentParser(description="Process arguments in comand line")
+    
+    # Agregar argumentos
+    parser.add_argument('--category', nargs='+', help='List categories', required=True)
+    parser.add_argument('--locations', nargs='+', help='List locations', required=True)
+    parser.add_argument('--pathfile', type=str, help='Path file', required=True)
+    
+    # Parsear argumentos
+    args = parser.parse_args()
+    
+    # Retornar los argumentos como listas y la ruta del archivo
+    return args.category, args.locations, args.pathfile
 
 def load_json(filename):
     # Opening JSON file
@@ -103,7 +118,7 @@ def extract_social_media_links(driver, url):
         url = 'https://www.' + url
     try:
         driver.get(url)
-
+        random_sleep(start= 2, end= 4)
         # Wait for the page to load completely
         wait = WebDriverWait(driver, 10)
 
@@ -132,6 +147,7 @@ def extract_social_media_links(driver, url):
         social_media_links['Email']= get_business_email(driver)
         random_sleep(start=0.2, end=1.5)
         close_back_main_window(driver)
+        random_sleep(start= 2, end= 4)
         return social_media_links
     except:
         random_sleep(start=0.2, end=1.5)
@@ -191,8 +207,37 @@ def get_business_email(driver):
         pass
     return ''
 
-def random_sleep(start=1, end=2):
-    time.sleep(random.uniform(start, end))
+def random_sleep(start=4, end=6):
+    """
+    Pausa la ejecución durante un tiempo aleatorio entre 'start' y 'end' segundos
+    con mayor precisión, mostrando una cuenta regresiva en la salida estándar.
+    
+    Args:
+    start (float): El número mínimo de segundos para esperar.
+    end (float): El número máximo de segundos para esperar.
+    """
+    segundos = random.uniform(start, end)
+    end_time = time.time() + segundos
+
+    # Imprime el tiempo inicial
+    sys.stdout.write(f'Tiempo inicial: {segundos:.1f} segundos\n')
+    
+    while time.time() < end_time:
+        remaining_time = end_time - time.time()
+        sys.stdout.write(f'\r{remaining_time:.1f} segundos restantes')
+        sys.stdout.flush()
+        
+        # Sleep in short intervals to maintain accuracy
+        sleep_time = min(0.1, remaining_time)
+        time.sleep(sleep_time)
+
+    sys.stdout.write('\r0.0 segundos restantes\n')
+
+def clean_screen():
+    """
+    clean screen in jupyter notebook
+    """
+    clear_output(wait=True)
 
 def human_typing(element, text, start=0.05, end=0.15):
     for char in text:
