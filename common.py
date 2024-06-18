@@ -40,14 +40,16 @@ def load_json(filename):
     return []
 
 def restart_continue(folder):
+    show_section("Restart or Continue:")
     user = input('Type r to restart or any to continue: ')
     if user == 'r':
+        print("Restart search")
         data = []
         save_check_point(f'{folder}/data.json', data)
         check_point = {'category':'', 'location':'', 'page':1,'index':0,'search_rank':1}
-        save_check_point(f'{folder}/checkpoint.json', check_point)
-        print("Restart search")
-    else:        
+        save_check_point(f'{folder}/checkpoint.json', check_point)        
+    else:
+        print("Resume previous check point")
         check_point = load_check_point(f'{folder}/checkpoint.json')
     return check_point
 
@@ -105,10 +107,7 @@ def continue_stop():
 
 def ensure_directory_exists(directory_path):
     if not os.path.exists(directory_path):
-        os.makedirs(directory_path)
-        print(f'Folder created : {directory_path}')
-    else:
-        print(f'Folder exist: {directory_path}')
+        os.makedirs(directory_path)        
 
 def extract_social_media_links(driver, url):
     driver.execute_script("window.open('');")
@@ -303,3 +302,20 @@ def get_input_user(mensaje, valor_por_defecto, tiempo_limite):
         return user_input
     except TimeoutExpired:
         return valor_por_defecto
+
+def show_section(texto, longitud_marco = 50):
+    espacio_blanco = (longitud_marco - 2 - len(texto)) // 2
+    print(espacio_blanco)
+    print(len(texto))
+    espacio_blanco_izq = espacio_blanco
+    espacio_blanco_der = espacio_blanco   
+
+    if (longitud_marco - 2 - len(texto)) % 2 != 0:
+        espacio_blanco_der += 1    
+
+    linea_superior_inferior = "#" * longitud_marco
+    linea_texto = "#" + " " * espacio_blanco_izq + texto + " " * espacio_blanco_der + "#"   
+    
+    print(linea_superior_inferior)
+    print(linea_texto)
+    print(linea_superior_inferior)

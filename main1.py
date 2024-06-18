@@ -319,9 +319,8 @@ def click_last_page_checked(driver, page_number, human_behaivor = True):
             ###################################
             wait.until(EC.staleness_of(blocks[0])) # wait until staleness first block
 
-def extract(driver, check_point, outfile):
+def extract(driver, check_point, folder, outfile):
     print("Input check point: ", check_point)
-    folder = outfile.split('/')[0]    
     enable = False
     search_counter = check_point['search_rank']
     data = load_json(f'{folder}/data.json')    
@@ -410,13 +409,14 @@ def extract(driver, check_point, outfile):
         #         CLICK NEXT PAGE                   #
         #############################################
         search_counter, next_found = click_next(driver, search_counter, index)
-        random_sleep(start = 1, end = 1.5)        
+        random_sleep(start = 3, end = 4.5)
         if not next_found:
             break
     return data
 
 def main():
     # try:
+        categories, locations, pathfile = get_arguments()
         directory_path = 'files_yell'
         ensure_directory_exists(directory_path)
         url1 = 'https://www.yell.com/'
@@ -429,8 +429,8 @@ def main():
         check_point = restart_continue(directory_path) # check and load checkpoint.
         search_settings = load_json('search_settings.json')
         count = 0
-        for category in search_settings['categories']:
-            for location in search_settings['locations']:
+        for category in categories:
+            for location in locations:
                 print(f"Category: {category} location {location}")
                 cond1 = check_point['category'] == category
                 cond2 = check_point['location'] == location
@@ -444,13 +444,14 @@ def main():
                     click_last_page_checked(driver, check_point['page'], human_behaivor = False)
                     random_sleep(start = 4, end= 5)            
                     # extract(driver, location, f'{directory_path}/{category}_{category}_out.csv')
-                    data = extract(driver, check_point, f'{directory_path}/{category}_{category}_out.csv')
+                    data = extract(driver, check_point, directory_path, pathfile)
                     check_point['category'] = ''
                     check_point['page'] = 1
                     check_point['search_rank'] = 1
+                    check_point['index'] = 0
             if data:
                 df = pd.DataFrame(data)
-                df.to_csv(f'{directory_path}/{directory_path}_out.csv')
+                df.to_csv(pathfile)
     # except:
     #     driver.quit()
 

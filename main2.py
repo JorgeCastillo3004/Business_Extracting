@@ -319,6 +319,7 @@ def click_last_show(driver):
         clickable_elements.append(clickable)
 
     print(clickable_elements[-1].text, end = ' ')
+    show_section(clickable_elements[-1].text, longitud_marco=30)
     clickable_elements[-1].click()   
     
     ###################################
@@ -327,8 +328,7 @@ def click_last_show(driver):
     wait.until(EC.staleness_of(blocks[0])) # wait until staleness first block
 
 def click_last_page_checked(driver, page_number):
-    random_sleep(start=1.5, end = 2.5)
-    print(f"Click in last page number: {page_number}", type(page_number))
+    random_sleep(start=1.5, end = 2.5)    
     webdriver.ActionChains(driver).send_keys(Keys.END).perform()
     random_sleep(start=1.5, end = 3.5)
     webdriver.ActionChains(driver).send_keys(Keys.PAGE_UP).perform()
@@ -363,13 +363,11 @@ def click_last_page_checked(driver, page_number):
             wait.until(EC.staleness_of(blocks[0])) # wait until staleness first block
     random_sleep(start=2.5, end = 3.5)
 
-def extract(driver, check_point, outfile):
-    folder = outfile.split('/')[0]
+def extract(driver, check_point, folder, outfile):
+    # folder = outfile.split('/')[0]
     data = load_json(f'{folder}/data.json')
     search_rank = check_point['search_rank']
-
-    print("search_rank: ", search_rank)
-    print(f"check_point {check_point}")
+    
     while True:
     #     blocks = driver.find_elements(By.XPATH, '//div[@data-testid="serp-ia-card"]')
         enable = False
@@ -392,13 +390,13 @@ def extract(driver, check_point, outfile):
                 #############################################
                 search_rank, company_name =  extract_search_rank_and_company_name(company_name, search_rank, index)
                 print(f"search_rank: {search_rank}, company_name: {company_name}")
-                random_sleep(start=0.2, end=1.5)
+                random_sleep(start=1.5, end=2.5)
                 
                 #############################################
                 #           EXTRACT REVIEWS                 #
                 #############################################
                 rating, no_of_reviews = extract_reviews_rating(block)
-                random_sleep(start=0.5, end=1.5)
+                random_sleep(start=2.5, end=3.5)
 
                 #############################################
                 #         CLICK MORE INFO                   #
@@ -415,7 +413,7 @@ def extract(driver, check_point, outfile):
                 #############################################
                 row = complete_data(check_point['location'], search_rank, company_name, categories, profile_URL, full_address,
                               phone_numbers, website, rating, no_of_reviews)
-                random_sleep(start=0.5, end=1.5)
+                random_sleep(start=1.5, end=3.5)
                 social_links = {}
                 if profile_URL != '':
                     social_links = extract_social_media_links(driver, profile_URL)
@@ -437,11 +435,11 @@ def extract(driver, check_point, outfile):
         #         CLICK NEXT PAGE                   #
         #############################################        
         print("Click on next")
-        random_sleep()
+        random_sleep(start = 2, end = 5)
         search_rank, flag_next = click_next(driver, search_rank, index)
         check_point['index'] = 0
         print(f"search_rank {search_rank}, flag_next {flag_next}")
-        random_sleep(start = 1, end = 1.5)
+        random_sleep(start = 3, end = 6)
         print(f"search_rank {search_rank}")
         if not flag_next:
             break
@@ -457,18 +455,19 @@ def main():
     ensure_directory_exists(directory_path)
     
     # DRIVER CREATION AND SETTINGS
-    driver = open_firefox_with_profile('https://www.yelp.co.uk/', headless= True)
-    driver.set_window_size(1800, 900)
+    driver = open_firefox_with_profile('https://www.yelp.co.uk/', headless= False, enable_profile=True)
+    # driver.set_window_size(1800, 900)
+    set_random_window_size(driver)
 
     # CHECK POINT AND SETTINGS
     check_point = restart_continue(directory_path) # check and load checkpoint.
     # search_settings = load_json('search_settings.json')
     categories, locations, pathfile = get_arguments()
     count = 0
-    try:
-        for category in categories:
-            for location in locations:
-                print(f"Category: {category} location {location}")
+    # try:
+    for category in categories:
+            for location in locations:                
+                show_section(f"Category: {category} location {location}", longitud_marco = 50)
                 cond1 = check_point['category'] == category
                 cond2 = check_point['location'] == location
                 cond3 = check_point['category'] == ''                
@@ -479,15 +478,15 @@ def main():
                     make_search(driver, category, location)
                     click_last_page_checked(driver, check_point['page'])
                     random_sleep(start = 4, end= 6)
-                    data = extract(driver, check_point, pathfile)
+                    data = extract(driver, check_point, directory_path, pathfile)
                     check_point['category'] = ''
                     check_point['page'] = 1
                     check_point['search_rank'] = 1
                     check_point['index'] = 0
                 random_sleep(start=50, end=90)
-    except:
-        driver.save_screenshot('issue.png')
-        driver.quit()
+    # except:
+    #     driver.save_screenshot('issue.png')
+    #     driver.quit()
 
 if __name__ == "__main__":
     main()
