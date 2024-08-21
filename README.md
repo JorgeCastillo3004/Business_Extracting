@@ -24,6 +24,7 @@ Download the latest version of GeckoDriver and make it executable.
 ```
 # Download the latest version of GeckoDriver
 ```bash
+https://github.com/mozilla/geckodriver/releases
 wget https://github.com/mozilla/geckodriver/releases/latest/download/geckodriver-v0.33.0-linux64.tar.gz
 ```
 # Extract the tar file
