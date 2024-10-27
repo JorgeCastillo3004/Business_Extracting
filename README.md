@@ -62,6 +62,9 @@ Define the search categories and locations.
 ```bash
 python main1.py
 ```
+## 7. Video Overview
+
+Watch the project video on YouTube: [Web Scraping Project Video](https://youtu.be/IkDKE_yPd_U)
 
 ### 7. Start https://www.yelp.co.uk/ extraction
 ```bash
