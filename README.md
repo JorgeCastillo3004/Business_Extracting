@@ -62,13 +62,15 @@ Define the search categories and locations.
 ```bash
 python main1.py
 ```
-## 7. Video Overview
-
-Watch the project video on YouTube: [Web Scraping Project Video](https://youtu.be/IkDKE_yPd_U)
-
-### 8. Start https://www.yelp.co.uk/ extraction
+### 7. Start https://www.yelp.co.uk/ extraction
 ```bash
 python main2.py
 ```
-### 9. The Output Files
+### 8. The Output Files
 The output files can be found in the "files_yell" and "files_yelp" folders created in the current directory. The script generates a file for each search category and location.
+
+## 9. Video Overview
+
+Watch the project video on YouTube: [Web Scraping Project Video](https://youtu.be/IkDKE_yPd_U)
+
+
