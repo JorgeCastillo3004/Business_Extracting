@@ -66,9 +66,9 @@ python main1.py
 
 Watch the project video on YouTube: [Web Scraping Project Video](https://youtu.be/IkDKE_yPd_U)
 
-### 7. Start https://www.yelp.co.uk/ extraction
+### 8. Start https://www.yelp.co.uk/ extraction
 ```bash
 python main2.py
 ```
-### 8. The Output Files
+### 9. The Output Files
 The output files can be found in the "files_yell" and "files_yelp" folders created in the current directory. The script generates a file for each search category and location.
